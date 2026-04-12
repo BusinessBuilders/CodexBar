@@ -1,66 +1,22 @@
 from __future__ import annotations
-import os
-# Force xorg backend — appindicator backend requires GTK3 which conflicts with GTK4
-os.environ.setdefault("PYSTRAY_BACKEND", "xorg")
+import json
+import subprocess
+import sys
+from pathlib import Path
 from typing import Callable, Optional
-from PIL import Image, ImageDraw
-import pystray
 
-
-ICON_SIZE = 22
-BAR_WIDTH = 16
-TOP_BAR_H = 5
-BOTTOM_BAR_H = 2
-GAP = 2
-MARGIN_LEFT = (ICON_SIZE - BAR_WIDTH) // 2
-
-
-def _color_for_percent(remaining_percent: float) -> tuple[int, int, int]:
-    if remaining_percent < 10:
-        return (255, 69, 58)
-    if remaining_percent < 25:
-        return (255, 214, 10)
-    return (48, 209, 88)
-
-
-def make_icon_image(
-    session_remaining: float = 100.0,
-    weekly_remaining: float = 100.0,
-) -> Image.Image:
-    img = Image.new("RGBA", (ICON_SIZE, ICON_SIZE), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-
-    worst = min(session_remaining, weekly_remaining)
-    color = _color_for_percent(worst)
-    track_color = (180, 180, 180, 100)
-
-    top_y = (ICON_SIZE - TOP_BAR_H - GAP - BOTTOM_BAR_H) // 2
-
-    draw.rectangle(
-        [MARGIN_LEFT, top_y, MARGIN_LEFT + BAR_WIDTH, top_y + TOP_BAR_H],
-        fill=track_color,
-    )
-    fill_w = max(2, int((session_remaining / 100.0) * BAR_WIDTH))
-    draw.rectangle(
-        [MARGIN_LEFT, top_y, MARGIN_LEFT + fill_w, top_y + TOP_BAR_H],
-        fill=color,
-    )
-
-    weekly_y = top_y + TOP_BAR_H + GAP
-    draw.rectangle(
-        [MARGIN_LEFT, weekly_y, MARGIN_LEFT + BAR_WIDTH, weekly_y + BOTTOM_BAR_H],
-        fill=track_color,
-    )
-    fill_w_w = max(2, int((weekly_remaining / 100.0) * BAR_WIDTH))
-    draw.rectangle(
-        [MARGIN_LEFT, weekly_y, MARGIN_LEFT + fill_w_w, weekly_y + BOTTOM_BAR_H],
-        fill=color,
-    )
-
-    return img
+_WORKER = Path(__file__).parent / "tray_worker.py"
 
 
 class TrayIcon:
+    """
+    Manages the system tray icon via a subprocess.
+
+    The worker (tray_worker.py) runs AyatanaAppIndicator3 (GTK3) in its own
+    process so it doesn't conflict with the main app's GTK4 imports.
+    JSON lines on stdin/stdout are used for bidirectional communication.
+    """
+
     def __init__(
         self,
         on_click: Callable[[], None],
@@ -70,34 +26,57 @@ class TrayIcon:
         self._on_click = on_click
         self._on_quit = on_quit
         self._on_refresh = on_refresh
-        self._icon: Optional[pystray.Icon] = None
+        self._proc: Optional[subprocess.Popen[str]] = None
 
     def run(self) -> None:
-        icon_image = make_icon_image(100.0, 100.0)
-        menu = pystray.Menu(
-            pystray.MenuItem("Refresh Now", lambda _icon, _item: self._on_refresh()),
-            pystray.Menu.SEPARATOR,
-            pystray.MenuItem("Quit", lambda _icon, _item: self._on_quit()),
+        """Start subprocess and block reading events (call from a daemon thread)."""
+        self._proc = subprocess.Popen(
+            [sys.executable, str(_WORKER)],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=sys.stderr,
+            text=True,
+            bufsize=1,
         )
-        self._icon = pystray.Icon(
-            name="codexbar",
-            icon=icon_image,
-            title="CodexBar",
-            menu=menu,
-        )
-        self._icon.run(setup=self._setup)
-
-    def _setup(self, icon: pystray.Icon) -> None:
-        icon.visible = True
+        assert self._proc.stdout is not None
+        for raw in self._proc.stdout:
+            raw = raw.strip()
+            if not raw:
+                continue
+            try:
+                evt = json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+            event = evt.get("event")
+            if event == "click":
+                self._on_click()
+            elif event == "refresh":
+                self._on_refresh()
+            elif event == "quit":
+                self._on_quit()
+                break
 
     def update_icon(
         self,
         session_remaining: float = 100.0,
         weekly_remaining: float = 100.0,
     ) -> None:
-        if self._icon:
-            self._icon.icon = make_icon_image(session_remaining, weekly_remaining)
+        if self._proc and self._proc.poll() is None:
+            self._send({"cmd": "update_icon", "session": session_remaining, "weekly": weekly_remaining})
 
     def stop(self) -> None:
-        if self._icon:
-            self._icon.stop()
+        if self._proc:
+            self._send({"cmd": "quit"})
+            try:
+                self._proc.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                self._proc.kill()
+
+    def _send(self, cmd: dict) -> None:  # type: ignore[type-arg]
+        if self._proc and self._proc.poll() is None:
+            assert self._proc.stdin is not None
+            try:
+                self._proc.stdin.write(json.dumps(cmd) + "\n")
+                self._proc.stdin.flush()
+            except (BrokenPipeError, OSError):
+                pass
