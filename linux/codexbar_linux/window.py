@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Callable, Optional
@@ -14,6 +15,48 @@ from codexbar_linux.provider_view import ProviderView
 CSS_PATH = Path(__file__).parent / "style.css"
 WINDOW_WIDTH = 310
 PANEL_HEIGHT_ESTIMATE = 46
+
+
+def _default_window_origin(monitor_x: int, monitor_y: int, monitor_width: int, window_width: int) -> tuple[int, int]:
+    return (monitor_x + monitor_width - window_width - 8, monitor_y + PANEL_HEIGHT_ESTIMATE + 4)
+
+
+@dataclass
+class WindowDragState:
+    manual_origin: Optional[tuple[int, int]] = None
+    _drag_origin: Optional[tuple[int, int]] = None
+
+    def begin(self, origin: tuple[int, int]) -> None:
+        self._drag_origin = origin
+
+    def update(self, offset_x: float, offset_y: float) -> Optional[tuple[int, int]]:
+        if self._drag_origin is None:
+            return None
+        return (
+            int(self._drag_origin[0] + offset_x),
+            int(self._drag_origin[1] + offset_y),
+        )
+
+    def end(self, offset_x: float, offset_y: float) -> Optional[tuple[int, int]]:
+        origin = self.update(offset_x, offset_y)
+        self.manual_origin = origin
+        self._drag_origin = None
+        return origin
+
+
+@dataclass(frozen=True)
+class FocusBehavior:
+    auto_hide_on_focus_leave: bool = False
+
+    def should_hide_on_focus_leave(self) -> bool:
+        return self.auto_hide_on_focus_leave
+
+
+@dataclass(frozen=True)
+class WindowChromeState:
+    title: str = "CodexBar"
+    draggable_from_header: bool = True
+    minimize_hides_to_tray: bool = True
 
 
 def _load_css() -> None:
@@ -32,6 +75,10 @@ class PopupWindow(Gtk.Window):
         self._store = store
         self._on_refresh = on_refresh
         self._active_provider: Optional[str] = None
+        self._drag_state = WindowDragState()
+        self._focus_behavior = FocusBehavior()
+        self._chrome_state = WindowChromeState()
+        self._window_origin: Optional[tuple[int, int]] = None
 
         _load_css()
         self.add_css_class("popup")
@@ -46,6 +93,10 @@ class PopupWindow(Gtk.Window):
 
         self._outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.set_child(self._outer)
+        self._header_bar = self._build_header_bar()
+        self._outer.append(self._header_bar)
+        self._content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        self._outer.append(self._content_box)
 
         self._tab_strip: Optional[ProviderTabStrip] = None
         self._scroll: Optional[Gtk.ScrolledWindow] = None
@@ -53,6 +104,33 @@ class PopupWindow(Gtk.Window):
         self._timestamp_label: Optional[Gtk.Label] = None
 
         self._build_empty_state()
+
+    def _build_header_bar(self) -> Gtk.Box:
+        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        header.add_css_class("window-header")
+
+        drag_handle = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        drag_handle.add_css_class("window-drag-handle")
+        drag_handle.set_hexpand(True)
+
+        title = Gtk.Label(label=self._chrome_state.title, xalign=0)
+        title.add_css_class("window-title")
+        drag_handle.append(title)
+
+        if self._chrome_state.draggable_from_header:
+            drag = Gtk.GestureDrag()
+            drag.connect("drag-begin", self._on_drag_begin)
+            drag.connect("drag-update", self._on_drag_update)
+            drag.connect("drag-end", self._on_drag_end)
+            drag_handle.add_controller(drag)
+
+        header.append(drag_handle)
+
+        minimize_button = Gtk.Button(label="—")
+        minimize_button.add_css_class("window-minimize")
+        minimize_button.connect("clicked", self._on_minimize_clicked)
+        header.append(minimize_button)
+        return header
 
     def toggle(self) -> None:
         if self.is_visible():
@@ -83,16 +161,16 @@ class PopupWindow(Gtk.Window):
         self._rebuild_ui(providers, provider_ids, last_refreshed)
 
     def _rebuild_ui(self, providers, provider_ids, last_refreshed) -> None:
-        child = self._outer.get_first_child()
+        child = self._content_box.get_first_child()
         while child:
             nxt = child.get_next_sibling()
-            self._outer.remove(child)
+            self._content_box.remove(child)
             child = nxt
 
         strip = ProviderTabStrip(provider_ids, active=self._active_provider or provider_ids[0])
         strip.connect("provider-changed", self._on_provider_changed)
         self._tab_strip = strip
-        self._outer.append(strip)
+        self._content_box.append(strip)
 
         scroll = Gtk.ScrolledWindow()
         scroll.add_css_class("provider-scroll")
@@ -100,7 +178,7 @@ class PopupWindow(Gtk.Window):
         scroll.set_max_content_height(520)
         scroll.set_propagate_natural_height(True)
         self._scroll = scroll
-        self._outer.append(scroll)
+        self._content_box.append(scroll)
 
         active_data = next(
             (p for p in providers if p.provider == self._active_provider), providers[0]
@@ -124,26 +202,26 @@ class PopupWindow(Gtk.Window):
         footer.append(refresh_btn)
 
         self._footer = footer
-        self._outer.append(footer)
+        self._content_box.append(footer)
 
     def _build_empty_state(self) -> None:
-        child = self._outer.get_first_child()
+        child = self._content_box.get_first_child()
         while child:
             nxt = child.get_next_sibling()
-            self._outer.remove(child)
+            self._content_box.remove(child)
             child = nxt
         msg = Gtk.Label(label="Loading usage data…")
         msg.set_margin_top(24)
         msg.set_margin_bottom(24)
         msg.set_margin_start(16)
         msg.set_margin_end(16)
-        self._outer.append(msg)
+        self._content_box.append(msg)
 
     def _show_error(self, error: str) -> None:
-        child = self._outer.get_first_child()
+        child = self._content_box.get_first_child()
         while child:
             nxt = child.get_next_sibling()
-            self._outer.remove(child)
+            self._content_box.remove(child)
             child = nxt
         msg = Gtk.Label(label=f"Error: {error}", wrap=True)
         msg.add_css_class("provider-error")
@@ -151,20 +229,33 @@ class PopupWindow(Gtk.Window):
         msg.set_margin_bottom(16)
         msg.set_margin_start(16)
         msg.set_margin_end(16)
-        self._outer.append(msg)
+        self._content_box.append(msg)
 
     def _position_window(self) -> bool:
+        if self._drag_state.manual_origin is not None:
+            self._move_window(*self._drag_state.manual_origin)
+            return False
+
+        origin = self._default_origin_for_display()
+        if origin is None:
+            return False
+        self._move_window(*origin)
+        return False
+
+    def _default_origin_for_display(self) -> Optional[tuple[int, int]]:
         display = Gdk.Display.get_default()
         if display is None:
-            return False
+            return None
         monitors = display.get_monitors()
         monitor = monitors.get_item(0)
         if monitor is None:
-            return False
+            return None
         geo = monitor.get_geometry()
         w = self.get_width() or WINDOW_WIDTH
-        x = geo.x + geo.width - w - 8
-        y = geo.y + PANEL_HEIGHT_ESTIMATE + 4
+        return _default_window_origin(geo.x, geo.y, geo.width, w)
+
+    def _move_window(self, x: int, y: int) -> None:
+        self._window_origin = (x, y)
         surface = self.get_surface()
         if surface is not None:
             try:
@@ -173,10 +264,25 @@ class PopupWindow(Gtk.Window):
                     surface.move(x, y)
             except (ImportError, AttributeError, TypeError):
                 pass
-        return False
 
     def _on_focus_leave(self, _ctrl) -> None:
-        GLib.idle_add(self.hide)
+        if self._focus_behavior.should_hide_on_focus_leave():
+            GLib.idle_add(self.hide)
+
+    def _on_drag_begin(self, _gesture: Gtk.GestureDrag, _start_x: float, _start_y: float) -> None:
+        origin = self._window_origin or self._drag_state.manual_origin or self._default_origin_for_display()
+        if origin is not None:
+            self._drag_state.begin(origin)
+
+    def _on_drag_update(self, _gesture: Gtk.GestureDrag, offset_x: float, offset_y: float) -> None:
+        origin = self._drag_state.update(offset_x, offset_y)
+        if origin is not None:
+            self._move_window(*origin)
+
+    def _on_drag_end(self, _gesture: Gtk.GestureDrag, offset_x: float, offset_y: float) -> None:
+        origin = self._drag_state.end(offset_x, offset_y)
+        if origin is not None:
+            self._move_window(*origin)
 
     def _on_provider_changed(self, _strip: ProviderTabStrip, provider_id: str) -> None:
         self._active_provider = provider_id
@@ -189,6 +295,10 @@ class PopupWindow(Gtk.Window):
     def _on_refresh_clicked(self, _btn) -> None:
         if self._on_refresh:
             self._on_refresh()
+
+    def _on_minimize_clicked(self, _btn) -> None:
+        if self._chrome_state.minimize_hides_to_tray:
+            self.hide()
 
     @staticmethod
     def _format_timestamp(dt: Optional[datetime]) -> str:

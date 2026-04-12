@@ -29,6 +29,14 @@ def _is_stale(dt: Optional[datetime]) -> bool:
     return (datetime.now() - dt).total_seconds() > 300
 
 
+def _metric_titles_for_provider(provider_id: str) -> tuple[str, str, str]:
+    if provider_id == "gemini":
+        return ("Pro", "Flash", "Flash Lite")
+    if provider_id == "claude":
+        return ("Session", "Weekly", "Sonnet")
+    return ("Session", "Weekly", "Tertiary")
+
+
 class MetricSection(Gtk.Box):
     def __init__(self, section_title: str, window: RateWindow) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=0)
@@ -64,6 +72,7 @@ class ProviderView(Gtk.Box):
         self._build(provider, last_refreshed)
 
     def _build(self, p: ProviderData, last_refreshed: Optional[datetime]) -> None:
+        primary_title, secondary_title, tertiary_title = _metric_titles_for_provider(p.provider)
         header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         display_name, _ = PROVIDER_DISPLAY.get(p.provider, (p.provider.capitalize(), ""))
         name_label = Gtk.Label(label=display_name, xalign=0)
@@ -91,15 +100,15 @@ class ProviderView(Gtk.Box):
             return
 
         if p.primary:
-            self.append(MetricSection("Session", p.primary))
+            self.append(MetricSection(primary_title, p.primary))
 
         if p.secondary:
             self.append(self._divider())
-            self.append(MetricSection("Weekly", p.secondary))
+            self.append(MetricSection(secondary_title, p.secondary))
 
         if p.tertiary:
             self.append(self._divider())
-            self.append(MetricSection("Sonnet", p.tertiary))
+            self.append(MetricSection(tertiary_title, p.tertiary))
 
         if p.credits_text:
             self.append(self._divider())
