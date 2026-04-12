@@ -1,12 +1,9 @@
-import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 import pytest
 from codexbar_linux.cli import parse_providers, find_cli, run_usage_json
-from codexbar_linux.store import ProviderData, RateWindow
-import sys
-sys.path.insert(0, str(Path(__file__).parent))
-from conftest import load_fixture
+from codexbar_linux.store import ProviderData
+from tests.conftest import load_fixture
 
 
 def test_parse_claude_provider():
