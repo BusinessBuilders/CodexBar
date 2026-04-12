@@ -91,13 +91,14 @@ def main() -> None:
             GLib.idle_add(window.refresh_content)
             return
         interval = int(config.get("refresh_interval_seconds", REFRESH_INTERVAL))
-        _poller = BackgroundPoller(
+        poller = BackgroundPoller(
             store=store,
             cli_path=cli_path,
             interval_seconds=interval,
             on_update=on_update_from_poller,
         )
-        _poller.start()
+        _poller = poller
+        poller.start()
 
     threading.Thread(target=_start_poller, daemon=True).start()
 
