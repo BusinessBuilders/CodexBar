@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=CodexBar
+GenericName=AI Usage Monitor
+Comment=AI usage stats in your system tray
+Exec=codexbar-linux
+Icon=utilities-system-monitor
+Terminal=false
+Categories=Utility;Monitor;
+Keywords=claude;codex;cursor;ai;usage;
+StartupNotify=false
+X-GNOME-Autostart-enabled=true
