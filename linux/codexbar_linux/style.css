@@ -1,0 +1,177 @@
+/* linux/codexbar_linux/style.css */
+
+/* ── Window ──────────────────────────────────────────────── */
+window.popup {
+    background-color: rgba(248, 248, 252, 0.96);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Provider Tab Strip ─────────────────────────────────── */
+.tab-strip {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 12px 12px 0 0;
+    padding: 8px 10px 6px 10px;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: #555555;
+    font-weight: 500;
+    min-width: 48px;
+    transition: background-color 80ms ease;
+}
+
+.tab-button:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+.tab-button.active {
+    background-color: #3b82f6;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.tab-icon {
+    font-size: 13px;
+}
+
+/* ── Provider Detail View ───────────────────────────────── */
+.provider-scroll {
+    background: none;
+}
+
+.provider-content {
+    padding: 14px 16px 12px 16px;
+}
+
+/* ── Provider Header ────────────────────────────────────── */
+.provider-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: -0.3px;
+}
+
+.provider-plan {
+    font-size: 13px;
+    color: #888888;
+    font-weight: 400;
+}
+
+.provider-updated {
+    font-size: 12px;
+    color: #999999;
+    margin-top: 1px;
+    margin-bottom: 8px;
+}
+
+.provider-error {
+    font-size: 12px;
+    color: #ff453a;
+    margin-top: 2px;
+}
+
+/* ── Metric Section (Session / Weekly / Sonnet) ─────────── */
+.section-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-top: 10px;
+    margin-bottom: 4px;
+}
+
+.metric-row {
+    margin-bottom: 2px;
+}
+
+.metric-stats {
+    font-size: 12px;
+    color: #555555;
+    margin-top: 3px;
+}
+
+.metric-used {
+    color: #555555;
+}
+
+.metric-reset {
+    color: #999999;
+}
+
+.metric-pace {
+    font-size: 11px;
+    color: #aaaaaa;
+    margin-top: 1px;
+    margin-bottom: 6px;
+}
+
+/* ── Credits Bar ────────────────────────────────────────── */
+.credits-label {
+    font-size: 12px;
+    color: #555555;
+    margin-top: 6px;
+}
+
+/* ── Divider ────────────────────────────────────────────── */
+.section-divider {
+    background-color: rgba(0, 0, 0, 0.08);
+    min-height: 1px;
+    margin: 8px 0;
+}
+
+/* ── Extra Usage & Cost rows ────────────────────────────── */
+.collapsible-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    background: none;
+    border: none;
+    padding: 4px 0;
+}
+
+.collapsible-detail {
+    font-size: 12px;
+    color: #666666;
+    margin-bottom: 4px;
+}
+
+.expand-chevron {
+    color: #aaaaaa;
+    font-size: 12px;
+}
+
+/* ── Footer ─────────────────────────────────────────────── */
+.footer-bar {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 0 0 14px 14px;
+    padding: 6px 14px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.footer-timestamp {
+    font-size: 11px;
+    color: #aaaaaa;
+}
+
+.footer-timestamp.stale {
+    color: #ff9500;
+}
+
+.refresh-button {
+    font-size: 11px;
+    color: #3b82f6;
+    background: none;
+    border: none;
+    padding: 2px 6px;
+    font-weight: 500;
+}
+
+.refresh-button:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-radius: 4px;
+}
