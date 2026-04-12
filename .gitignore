@@ -41,3 +41,5 @@ docs/.astro/
 # Packages/
 # Package.resolved
 .worktrees/
+__pycache__/
+*.pyc
