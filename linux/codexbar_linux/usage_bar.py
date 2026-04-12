@@ -39,7 +39,7 @@ class UsageBar(Gtk.DrawingArea):
         self._used_percent = max(0.0, min(100.0, used_percent))
         self.queue_draw()
 
-    def _draw(self, area: Gtk.DrawingArea, cr, width: int, height: int) -> None:
+    def _draw(self, _area: Gtk.DrawingArea, cr, width: int, height: int) -> None:
         radius = height / 2.0
 
         # Draw gray track
