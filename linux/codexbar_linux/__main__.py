@@ -4,7 +4,7 @@ import threading
 from pathlib import Path
 import gi
 gi.require_version("Gtk", "4.0")
-from gi.repository import GLib, Gtk
+from gi.repository import GLib
 from codexbar_linux.cli import find_cli, download_cli
 from codexbar_linux.poller import BackgroundPoller
 from codexbar_linux.store import DataStore
@@ -63,9 +63,11 @@ def main() -> None:
         on_update=on_update_from_poller,
     )
 
+    loop = GLib.MainLoop()
+
     def on_quit() -> None:
         poller.stop()
-        GLib.idle_add(Gtk.main_quit)
+        GLib.idle_add(loop.quit)
 
     tray = TrayIcon(
         on_click=lambda: GLib.idle_add(window.toggle),
@@ -81,7 +83,7 @@ def main() -> None:
     poller_thread = threading.Thread(target=poller.start, daemon=True)
     poller_thread.start()
 
-    Gtk.main()
+    loop.run()
 
 
 if __name__ == "__main__":
