@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 import pytest
-from codexbar_linux.cli import parse_providers, find_cli, run_usage_json
+from codexbar_linux.cli import parse_providers, find_cli, run_usage_json, _prepare_runtime_cli
 from codexbar_linux.store import ProviderData
 from tests.conftest import load_fixture
 
@@ -351,3 +351,19 @@ def test_find_cli_in_path(tmp_path):
 def test_find_cli_raises_when_missing(tmp_path):
     with pytest.raises(FileNotFoundError, match="codexbar CLI not found"):
         find_cli(config_path=str(tmp_path / "nonexistent"), search_install_dir=tmp_path)
+
+
+def test_prepare_runtime_cli_copies_binary_to_cache_on_old_glibc(tmp_path, monkeypatch):
+    source_dir = tmp_path / "mounted"
+    source_dir.mkdir()
+    source_cli = source_dir / "codexbar"
+    source_cli.write_bytes(b"fake-cli")
+
+    cache_home = tmp_path / "cache-home"
+    monkeypatch.setenv("XDG_CACHE_HOME", str(cache_home))
+
+    runtime_cli = _prepare_runtime_cli(source_cli, glibc_version=(2, 35))
+
+    assert runtime_cli != source_cli
+    assert runtime_cli.read_bytes() == b"fake-cli"
+    assert str(runtime_cli).startswith(str(cache_home))

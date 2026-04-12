@@ -123,6 +123,38 @@ _HASH_238 = b"\xb8\x91\x96\x06"  # elf_hash("GLIBC_2.38") = 0x069691b8
 _HASH_235 = b"\xb5\x91\x96\x06"  # elf_hash("GLIBC_2.35") = 0x069691b5
 
 
+def _runtime_cache_root() -> Path:
+    xdg_cache = os.environ.get("XDG_CACHE_HOME", "").strip()
+    if xdg_cache:
+        return Path(xdg_cache) / "codexbar-linux" / "runtime"
+    return Path.home() / ".cache" / "codexbar-linux" / "runtime"
+
+
+def _prepare_runtime_cli(cli_path: Path, glibc_version: Optional[tuple[int, int]] = None) -> Path:
+    if not cli_path.exists():
+        return cli_path
+
+    glibc_version = glibc_version or _glibc_version()
+    if glibc_version >= (2, 38):
+        return cli_path
+
+    try:
+        source_bytes = cli_path.read_bytes()
+    except FileNotFoundError:
+        return cli_path
+
+    digest = hashlib.sha256(source_bytes).hexdigest()[:16]
+    runtime_dir = _runtime_cache_root() / digest
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    runtime_cli = runtime_dir / cli_path.name
+
+    if not runtime_cli.exists() or runtime_cli.read_bytes() != source_bytes:
+        shutil.copy2(cli_path, runtime_cli)
+        runtime_cli.chmod(runtime_cli.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+
+    return runtime_cli
+
+
 def _patch_binary_for_glibc235(binary: Path) -> None:
     """
     Patch the binary's VERNEED section in-place so GLIBC_2.38 requirements
@@ -919,16 +951,18 @@ def run_usage_json(
     """Run `codexbar usage --json`, return (providers, error_string)."""
     # On GLIBC < 2.38: ensure binary is patched and shim is built
     env = os.environ.copy()
-    if _glibc_version() < (2, 38) and cli_path.exists():
-        _patch_binary_for_glibc235(cli_path.resolve())
-    shim = _ensure_glibc_shim(cli_path.parent)
+    glibc_version = _glibc_version()
+    runtime_cli_path = _prepare_runtime_cli(cli_path, glibc_version=glibc_version)
+    if glibc_version < (2, 38) and runtime_cli_path.exists():
+        _patch_binary_for_glibc235(runtime_cli_path.resolve())
+    shim = _ensure_glibc_shim(runtime_cli_path.parent)
     if shim:
         existing = env.get("LD_PRELOAD", "")
         env["LD_PRELOAD"] = f"{shim}:{existing}".rstrip(":")
 
     try:
         result = subprocess.run(
-            [str(cli_path), "usage", "--json"],
+            [str(runtime_cli_path), "usage", "--json"],
             capture_output=True,
             text=True,
             timeout=timeout,

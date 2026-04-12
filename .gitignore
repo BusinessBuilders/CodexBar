@@ -32,6 +32,8 @@ debug_*.swift
 .vscode/
 .codex/environments/
 .swiftpm-cache/
+__pycache__/
+linux/dist/
 
 # Debug/analysis docs
 docs/*-analysis.md
