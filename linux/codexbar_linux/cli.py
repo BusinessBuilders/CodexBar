@@ -22,6 +22,16 @@ DEFAULT_INSTALL_DIR = Path.home() / ".local" / "share" / "codexbar-linux" / "bin
 # On older systems (Ubuntu 22.04 = GLIBC 2.35), we compile a tiny LD_PRELOAD
 # shim that provides the 8 missing symbols so the binary runs unchanged.
 
+# The pre-built binary was compiled against GLIBC 2.38. On Ubuntu 22.04 (GLIBC 2.35)
+# we need two fixes:
+#   1. Binary-patch the binary's VERNEED section: replace "GLIBC_2.38" with "GLIBC_2.35"
+#      (also patch the ELF hash from 0x069691b8 → 0x069691b5).
+#   2. LD_PRELOAD a shim providing the 8 symbols that don't exist at GLIBC_2.35:
+#      strlcpy, strlcat, __isoc23_{strtol,strtoll,strtoul,sscanf}, fmod, fmodf.
+#
+# After the binary patch the symbols are looked up as @GLIBC_2.35, which our shim
+# provides. fmod/fmodf are delegated to libm via RTLD_NEXT.
+
 _GLIBC_SHIM_SRC = r"""
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -30,60 +40,65 @@ _GLIBC_SHIM_SRC = r"""
 #include <string.h>
 #include <dlfcn.h>
 
-/* strlcpy / strlcat — added to glibc in 2.38 */
-static size_t _strlcpy(char *dst, const char *src, size_t size) {
-    size_t srclen = strlen(src);
-    if (size > 0) {
-        size_t n = srclen < size - 1 ? srclen : size - 1;
-        memcpy(dst, src, n);
-        dst[n] = '\0';
-    }
-    return srclen;
+size_t _cb_strlcpy(char *d, const char *s, size_t n) {
+    size_t l = strlen(s);
+    if (n > 0) { size_t c = l < n-1 ? l : n-1; memcpy(d,s,c); d[c]=0; }
+    return l;
 }
-__asm__(".symver _strlcpy,strlcpy@GLIBC_2.38");
+__asm__(".symver _cb_strlcpy,strlcpy@GLIBC_2.35");
 
-static size_t _strlcat(char *dst, const char *src, size_t size) {
-    size_t dstlen = strnlen(dst, size);
-    if (dstlen == size) return size + strlen(src);
-    return dstlen + _strlcpy(dst + dstlen, src, size - dstlen);
+size_t _cb_strlcat(char *d, const char *s, size_t n) {
+    size_t dl = strnlen(d, n);
+    if (dl == n) return n + strlen(s);
+    return dl + _cb_strlcpy(d+dl, s, n-dl);
 }
-__asm__(".symver _strlcat,strlcat@GLIBC_2.38");
+__asm__(".symver _cb_strlcat,strlcat@GLIBC_2.35");
 
-/* __isoc23_* — C23 standard variants (identical for our purposes) */
-static long _isoc23_strtol(const char *s, char **e, int b) { return strtol(s, e, b); }
-__asm__(".symver _isoc23_strtol,__isoc23_strtol@GLIBC_2.38");
-
-static long long _isoc23_strtoll(const char *s, char **e, int b) { return strtoll(s, e, b); }
-__asm__(".symver _isoc23_strtoll,__isoc23_strtoll@GLIBC_2.38");
-
-static unsigned long _isoc23_strtoul(const char *s, char **e, int b) { return strtoul(s, e, b); }
-__asm__(".symver _isoc23_strtoul,__isoc23_strtoul@GLIBC_2.38");
-
-static int _isoc23_sscanf(const char *str, const char *fmt, ...) {
-    va_list ap; va_start(ap, fmt);
-    int r = vsscanf(str, fmt, ap);
-    va_end(ap); return r;
+long _cb_strtol(const char *s,char **e,int b){return strtol(s,e,b);}
+__asm__(".symver _cb_strtol,__isoc23_strtol@GLIBC_2.35");
+long long _cb_strtoll(const char *s,char **e,int b){return strtoll(s,e,b);}
+__asm__(".symver _cb_strtoll,__isoc23_strtoll@GLIBC_2.35");
+unsigned long _cb_strtoul(const char *s,char **e,int b){return strtoul(s,e,b);}
+__asm__(".symver _cb_strtoul,__isoc23_strtoul@GLIBC_2.35");
+int _cb_sscanf(const char *s, const char *f, ...) {
+    va_list a; va_start(a,f); int r=vsscanf(s,f,a); va_end(a); return r;
 }
-__asm__(".symver _isoc23_sscanf,__isoc23_sscanf@GLIBC_2.38");
+__asm__(".symver _cb_sscanf,__isoc23_sscanf@GLIBC_2.35");
 
-/* fmod / fmodf — re-versioned in glibc 2.38; delegate to next library */
-typedef double (*fmod_fn)(double, double);
-typedef float  (*fmodf_fn)(float, float);
-
-static double _fmod238(double x, double y) {
-    static fmod_fn fn;
-    if (!fn) fn = (fmod_fn)dlsym(RTLD_NEXT, "fmod");
-    return fn(x, y);
-}
-__asm__(".symver _fmod238,fmod@GLIBC_2.38");
-
-static float _fmodf238(float x, float y) {
-    static fmodf_fn fn;
-    if (!fn) fn = (fmodf_fn)dlsym(RTLD_NEXT, "fmodf");
-    return fn(x, y);
-}
-__asm__(".symver _fmodf238,fmodf@GLIBC_2.38");
+typedef double (*fmod_t)(double,double);
+typedef float  (*fmodf_t)(float,float);
+double _cb_fmod(double x,double y){static fmod_t f;if(!f)f=(fmod_t)dlsym(RTLD_NEXT,"fmod");return f(x,y);}
+__asm__(".symver _cb_fmod,fmod@GLIBC_2.35");
+float _cb_fmodf(float x,float y){static fmodf_t f;if(!f)f=(fmodf_t)dlsym(RTLD_NEXT,"fmodf");return f(x,y);}
+__asm__(".symver _cb_fmodf,fmodf@GLIBC_2.35");
 """
+
+_GLIBC_SHIM_VER = """\
+GLIBC_2.35 {
+    strlcpy; strlcat;
+    __isoc23_strtol; __isoc23_strtoll; __isoc23_strtoul; __isoc23_sscanf;
+    fmod; fmodf;
+};
+"""
+
+# ELF hash constants for the VERNEED patch
+_HASH_238 = b"\xb8\x91\x96\x06"  # elf_hash("GLIBC_2.38") = 0x069691b8
+_HASH_235 = b"\xb5\x91\x96\x06"  # elf_hash("GLIBC_2.35") = 0x069691b5
+
+
+def _patch_binary_for_glibc235(binary: Path) -> None:
+    """
+    Patch the binary's VERNEED section in-place so GLIBC_2.38 requirements
+    become GLIBC_2.35. Modifies both the version string and its ELF hash.
+    Safe: both strings are 10 chars + NUL (same length); hash change is 1 byte.
+    Idempotent: no-op if already patched.
+    """
+    data = binary.read_bytes()
+    if b"GLIBC_2.38\x00" not in data:
+        return  # already patched or different binary
+    patched = data.replace(b"GLIBC_2.38\x00", b"GLIBC_2.35\x00")
+    patched = patched.replace(_HASH_238, _HASH_235)
+    binary.write_bytes(patched)
 
 
 def _glibc_version() -> tuple[int, int]:
@@ -121,11 +136,18 @@ def _ensure_glibc_shim(binary_dir: Path) -> Optional[Path]:
         return None
 
     src_fd, src_path = tempfile.mkstemp(suffix=".c")
+    ver_fd, ver_path = tempfile.mkstemp(suffix=".map")
     try:
         os.write(src_fd, _GLIBC_SHIM_SRC.encode())
         os.close(src_fd)
+        os.write(ver_fd, _GLIBC_SHIM_VER.encode())
+        os.close(ver_fd)
         result = subprocess.run(
-            ["gcc", "-shared", "-fPIC", "-O2", src_path, "-o", str(shim), "-ldl"],
+            [
+                "gcc", "-shared", "-fPIC", "-O2",
+                src_path, "-o", str(shim),
+                "-ldl", f"-Wl,--version-script={ver_path}",
+            ],
             capture_output=True,
             text=True,
             timeout=30,
@@ -139,6 +161,7 @@ def _ensure_glibc_shim(binary_dir: Path) -> Optional[Path]:
         return None
     finally:
         Path(src_path).unlink(missing_ok=True)
+        Path(ver_path).unlink(missing_ok=True)
 
 
 # ── Core CLI functions ────────────────────────────────────────────────────────
@@ -211,8 +234,10 @@ def download_cli(install_dir: Path = DEFAULT_INSTALL_DIR) -> Path:
     binary.chmod(binary.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
     tarball.unlink()
 
-    # Compile GLIBC compat shim alongside the binary (best-effort)
-    _ensure_glibc_shim(install_dir)
+    # On GLIBC < 2.38: patch binary's VERNEED section and build LD_PRELOAD shim
+    if _glibc_version() < (2, 38):
+        _patch_binary_for_glibc235(binary)
+        _ensure_glibc_shim(install_dir)
 
     return binary
 
