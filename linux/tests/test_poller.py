@@ -1,7 +1,6 @@
 import threading
 import time
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 from codexbar_linux.poller import BackgroundPoller
 from codexbar_linux.store import DataStore, ProviderData, RateWindow
 
@@ -20,7 +19,7 @@ def test_poller_updates_store_on_start():
     store = DataStore()
     called = threading.Event()
 
-    def fake_fetch(cli_path, timeout=30):
+    def fake_fetch(_cli_path, _timeout=30):
         called.set()
         return ([_make_provider()], None)
 
@@ -42,7 +41,7 @@ def test_poller_calls_on_update_callback():
     store = DataStore()
     callback_called = threading.Event()
 
-    def fake_fetch(cli_path, timeout=30):
+    def fake_fetch(_cli_path, _timeout=30):
         return ([_make_provider()], None)
 
     poller = BackgroundPoller(
@@ -61,7 +60,7 @@ def test_poller_stores_error_on_failure():
     store = DataStore()
     done = threading.Event()
 
-    def fake_fetch(cli_path, timeout=30):
+    def fake_fetch(_cli_path, _timeout=30):
         done.set()
         return ([], "CLI not found")
 
@@ -84,7 +83,7 @@ def test_refresh_now_triggers_immediate_fetch():
     fetch_count = [0]
     second_fetch = threading.Event()
 
-    def fake_fetch(cli_path, timeout=30):
+    def fake_fetch(_cli_path, _timeout=30):
         fetch_count[0] += 1
         if fetch_count[0] == 2:
             second_fetch.set()
@@ -108,7 +107,7 @@ def test_poller_stop():
     store = DataStore()
     fetch_count = [0]
 
-    def fake_fetch(cli_path, timeout=30):
+    def fake_fetch(_cli_path, _timeout=30):
         fetch_count[0] += 1
         return ([_make_provider()], None)
 
