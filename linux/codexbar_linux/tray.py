@@ -72,9 +72,9 @@ class TrayIcon:
     def run(self) -> None:
         icon_image = make_icon_image(100.0, 100.0)
         menu = pystray.Menu(
-            pystray.MenuItem("Refresh Now", lambda icon, item: self._on_refresh()),
+            pystray.MenuItem("Refresh Now", lambda _icon, _item: self._on_refresh()),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("Quit", lambda icon, item: self._on_quit()),
+            pystray.MenuItem("Quit", lambda _icon, _item: self._on_quit()),
         )
         self._icon = pystray.Icon(
             name="codexbar",

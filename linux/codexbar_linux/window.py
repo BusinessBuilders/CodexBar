@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
@@ -27,7 +27,7 @@ def _load_css() -> None:
 
 
 class PopupWindow(Gtk.Window):
-    def __init__(self, store: DataStore, on_refresh: Optional[callable] = None) -> None:
+    def __init__(self, store: DataStore, on_refresh: Optional[Callable[[], None]] = None) -> None:
         super().__init__()
         self._store = store
         self._on_refresh = on_refresh
