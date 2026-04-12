@@ -25,14 +25,16 @@ echo "==> Installing system packages (requires sudo)…"
 sudo apt-get install -y --no-install-recommends \
     python3-gi python3-gi-cairo \
     gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-gdkx11-4.0 \
-    libayatana-appindicator3-dev 2>/dev/null || \
+    gir1.2-ayatanaappindicator3-0.1 libayatana-appindicator3-1 \
+    gnome-shell-extension-appindicator 2>/dev/null || \
 sudo apt-get install -y --no-install-recommends \
     python3-gi python3-gi-cairo \
-    gir1.2-gtk-4.0 gir1.2-gdkx11-4.0
+    gir1.2-gtk-4.0 gir1.2-gdkx11-4.0 \
+    gir1.2-ayatanaappindicator3-0.1 libayatana-appindicator3-1
 
 # ── Python packages ───────────────────────────────────────
 echo "==> Installing Python packages…"
-pip install --user --quiet "pystray>=0.19.0" "pillow>=10.0.0"
+/usr/bin/python3 -m pip install --user --quiet "pillow>=10.0.0"
 
 # ── Download codexbar CLI binary ──────────────────────────
 echo "==> Fetching latest codexbar CLI release…"
@@ -82,8 +84,9 @@ cp "$SCRIPT_DIR/requirements.txt" "$APP_DIR/"
 mkdir -p "$BIN_DIR"
 cat > "$BIN_DIR/codexbar-linux" <<LAUNCHER
 #!/usr/bin/env bash
+# Use system python3 — PyGObject (gi) bindings are only available there
 export PYTHONPATH="$APP_DIR"
-exec python3 -m codexbar_linux "\$@"
+exec /usr/bin/python3 -m codexbar_linux "\$@"
 LAUNCHER
 chmod +x "$BIN_DIR/codexbar-linux"
 
