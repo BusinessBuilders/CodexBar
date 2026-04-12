@@ -1,43 +1,58 @@
-/* linux/codexbar_linux/style.css */
+/* ═══════════════════════════════════════════════════════
+   CodexBar Linux — Carbon Precision Theme
+   Dark-first, compositor-independent, developer-grade
+   ═══════════════════════════════════════════════════════ */
 
-/* ── Window ──────────────────────────────────────────────── */
+/* ── Window ─────────────────────────────────────────────── */
 window.popup {
-    background-color: rgba(248, 248, 252, 0.96);
+    background-color: rgba(20, 21, 28, 0.98);
     border-radius: 14px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.75),
+        0 4px 16px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color: #e8e8ec;
 }
 
 /* ── Provider Tab Strip ─────────────────────────────────── */
 .tab-strip {
-    background-color: rgba(0, 0, 0, 0.05);
-    border-radius: 12px 12px 0 0;
-    padding: 8px 10px 6px 10px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 14px 14px 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 10px 12px 8px 12px;
 }
 
 .tab-button {
     background: none;
     border: none;
-    border-radius: 8px;
-    padding: 4px 10px;
-    font-size: 11px;
-    color: #555555;
+    border-radius: 7px;
+    padding: 5px 10px 4px 10px;
+    font-size: 10px;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.38);
     font-weight: 500;
-    min-width: 48px;
-    transition: background-color 80ms ease;
+    letter-spacing: 0.3px;
+    min-width: 44px;
+    transition: background-color 100ms ease, color 100ms ease;
 }
 
 .tab-button:hover {
-    background-color: rgba(0, 0, 0, 0.06);
+    background-color: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.65);
 }
 
 .tab-button.active {
-    background-color: #3b82f6;
-    color: #ffffff;
+    background-color: rgba(245, 166, 35, 0.18);
+    color: #F5A623;
     font-weight: 600;
+    border: 1px solid rgba(245, 166, 35, 0.28);
 }
 
 .tab-icon {
-    font-size: 13px;
+    font-size: 12px;
+    margin-bottom: 1px;
+    color: inherit;
 }
 
 /* ── Provider Detail View ───────────────────────────────── */
@@ -46,132 +61,167 @@ window.popup {
 }
 
 .provider-content {
-    padding: 14px 16px 12px 16px;
+    padding: 16px 18px 14px 18px;
 }
 
 /* ── Provider Header ────────────────────────────────────── */
 .provider-name {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
-    color: #1a1a1a;
-    letter-spacing: -0.3px;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: #f0f0f4;
+    letter-spacing: -0.4px;
 }
 
 .provider-plan {
-    font-size: 13px;
-    color: #888888;
+    font-size: 11px;
+    font-family: 'Ubuntu Mono', 'Courier New', monospace;
+    color: rgba(245, 166, 35, 0.75);
     font-weight: 400;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .provider-updated {
-    font-size: 12px;
-    color: #999999;
-    margin-top: 1px;
-    margin-bottom: 8px;
+    font-size: 11px;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.28);
+    margin-top: 2px;
+    margin-bottom: 12px;
+    letter-spacing: 0.2px;
+}
+
+.provider-updated.stale {
+    color: #F5A623;
 }
 
 .provider-error {
     font-size: 12px;
-    color: #ff453a;
-    margin-top: 2px;
+    font-family: 'Ubuntu Mono', monospace;
+    color: #ff6b6b;
+    margin-top: 4px;
+    background-color: rgba(255, 107, 107, 0.08);
+    border-left: 2px solid rgba(255, 107, 107, 0.5);
+    padding: 6px 10px;
+    border-radius: 0 4px 4px 0;
 }
 
 /* ── Metric Section (Session / Weekly / Sonnet) ─────────── */
 .section-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1a1a1a;
-    margin-top: 10px;
-    margin-bottom: 4px;
-}
-
-.metric-row {
-    margin-bottom: 2px;
-}
-
-.metric-stats {
-    font-size: 12px;
-    color: #555555;
-    margin-top: 3px;
-}
-
-.metric-used {
-    color: #555555;
-}
-
-.metric-reset {
-    color: #999999;
-}
-
-.metric-pace {
     font-size: 11px;
-    color: #aaaaaa;
-    margin-top: 1px;
+    font-weight: 600;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-top: 12px;
     margin-bottom: 6px;
 }
 
-/* ── Credits Bar ────────────────────────────────────────── */
+.metric-row {
+    margin-bottom: 4px;
+}
+
+.metric-stats {
+    font-size: 11px;
+    font-family: 'Ubuntu Mono', 'Courier New', monospace;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 4px;
+    letter-spacing: 0.2px;
+}
+
+.metric-used {
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 500;
+}
+
+.metric-reset {
+    color: rgba(255, 255, 255, 0.32);
+}
+
+.metric-pace {
+    font-size: 10px;
+    font-family: 'Ubuntu Mono', monospace;
+    color: rgba(255, 255, 255, 0.25);
+    margin-top: 2px;
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+}
+
+/* ── Credits ─────────────────────────────────────────────── */
 .credits-label {
     font-size: 12px;
-    color: #555555;
+    font-family: 'Ubuntu Mono', 'Courier New', monospace;
+    color: rgba(255, 255, 255, 0.55);
     margin-top: 6px;
+    letter-spacing: 0.3px;
 }
 
-/* ── Divider ────────────────────────────────────────────── */
+/* ── Divider ─────────────────────────────────────────────── */
 .section-divider {
-    background-color: rgba(0, 0, 0, 0.08);
+    background-color: rgba(255, 255, 255, 0.07);
     min-height: 1px;
-    margin: 8px 0;
+    margin: 10px 0;
 }
 
-/* ── Extra Usage & Cost rows ────────────────────────────── */
+/* ── Collapsible rows (Extra Usage / Cost) ───────────────── */
 .collapsible-header {
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 600;
-    color: #1a1a1a;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
     background: none;
     border: none;
     padding: 4px 0;
 }
 
 .collapsible-detail {
-    font-size: 12px;
-    color: #666666;
+    font-size: 11px;
+    font-family: 'Ubuntu Mono', monospace;
+    color: rgba(255, 255, 255, 0.38);
     margin-bottom: 4px;
 }
 
 .expand-chevron {
-    color: #aaaaaa;
-    font-size: 12px;
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 10px;
 }
 
-/* ── Footer ─────────────────────────────────────────────── */
+/* ── Footer ──────────────────────────────────────────────── */
 .footer-bar {
-    background-color: rgba(0, 0, 0, 0.03);
+    background-color: rgba(0, 0, 0, 0.25);
     border-radius: 0 0 14px 14px;
-    padding: 6px 14px;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 7px 16px;
 }
 
 .footer-timestamp {
-    font-size: 11px;
-    color: #aaaaaa;
+    font-size: 10px;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.3px;
 }
 
 .footer-timestamp.stale {
-    color: #ff9500;
+    color: #F5A623;
 }
 
 .refresh-button {
-    font-size: 11px;
-    color: #3b82f6;
+    font-size: 10px;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.38);
     background: none;
     border: none;
-    padding: 2px 6px;
+    padding: 3px 8px;
     font-weight: 500;
+    letter-spacing: 0.3px;
+    border-radius: 4px;
+    transition: background-color 100ms ease, color 100ms ease;
 }
 
 .refresh-button:hover {
-    background-color: rgba(59, 130, 246, 0.1);
-    border-radius: 4px;
+    background-color: rgba(245, 166, 35, 0.12);
+    color: #F5A623;
 }
