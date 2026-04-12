@@ -293,8 +293,10 @@ def run_usage_json(
     timeout: int = 30,
 ) -> tuple[list[ProviderData], Optional[str]]:
     """Run `codexbar usage --json`, return (providers, error_string)."""
-    # Build env with LD_PRELOAD shim for GLIBC < 2.38 systems
+    # On GLIBC < 2.38: ensure binary is patched and shim is built
     env = os.environ.copy()
+    if _glibc_version() < (2, 38):
+        _patch_binary_for_glibc235(cli_path.resolve())
     shim = _ensure_glibc_shim(cli_path.parent)
     if shim:
         existing = env.get("LD_PRELOAD", "")
