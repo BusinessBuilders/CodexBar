@@ -1,4 +1,7 @@
 from __future__ import annotations
+import os
+# Force xorg backend — appindicator backend requires GTK3 which conflicts with GTK4
+os.environ.setdefault("PYSTRAY_BACKEND", "xorg")
 from typing import Callable, Optional
 from PIL import Image, ImageDraw
 import pystray
