@@ -18,7 +18,7 @@ PANEL_HEIGHT_ESTIMATE = 46
 
 def _load_css() -> None:
     provider = Gtk.CssProvider()
-    provider.load_from_path(str(CSS_PATH))
+    provider.load_from_data(CSS_PATH.read_bytes())
     Gtk.StyleContext.add_provider_for_display(
         Gdk.Display.get_default(),
         provider,
