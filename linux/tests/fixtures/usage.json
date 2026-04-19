@@ -1,0 +1,74 @@
+[
+  {
+    "provider": "claude",
+    "account": "user@example.com",
+    "version": "0.20",
+    "source": "oauth",
+    "status": {
+      "indicator": "none",
+      "description": null,
+      "updatedAt": "2026-04-12T10:00:00Z",
+      "url": "https://status.anthropic.com"
+    },
+    "usage": {
+      "primary": {
+        "usedPercent": 2.0,
+        "remainingPercent": 98.0,
+        "windowMinutes": 300,
+        "resetsAt": "2026-04-12T18:00:00Z",
+        "resetDescription": "Resets in 3h 53m"
+      },
+      "secondary": {
+        "usedPercent": 3.0,
+        "remainingPercent": 97.0,
+        "windowMinutes": 10080,
+        "resetsAt": "2026-04-19T00:00:00Z",
+        "resetDescription": "Resets in 3d 20h"
+      },
+      "tertiary": {
+        "usedPercent": 0.0,
+        "remainingPercent": 100.0,
+        "windowMinutes": 10080,
+        "resetsAt": null,
+        "resetDescription": null
+      },
+      "planText": "Max"
+    },
+    "credits": null,
+    "antigravityPlanInfo": null,
+    "openaiDashboard": null,
+    "error": null
+  },
+  {
+    "provider": "codex",
+    "account": "other@example.com",
+    "version": "0.20",
+    "source": "cli",
+    "status": {
+      "indicator": "minor",
+      "description": "Partial outage",
+      "updatedAt": "2026-04-12T09:00:00Z",
+      "url": "https://status.openai.com"
+    },
+    "usage": {
+      "primary": {
+        "usedPercent": 45.0,
+        "remainingPercent": 55.0,
+        "windowMinutes": 300,
+        "resetsAt": "2026-04-12T15:00:00Z",
+        "resetDescription": "Resets in 1h 12m"
+      },
+      "secondary": null,
+      "tertiary": null,
+      "planText": null
+    },
+    "credits": {
+      "remaining": 12.40,
+      "total": 100.0,
+      "currencyCode": "USD"
+    },
+    "antigravityPlanInfo": null,
+    "openaiDashboard": null,
+    "error": null
+  }
+]

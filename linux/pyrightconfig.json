@@ -1,0 +1,7 @@
+{
+  "pythonVersion": "3.10",
+  "pythonPath": "/usr/bin/python3",
+  "pythonPlatform": "Linux",
+  "extraPaths": ["."],
+  "include": ["codexbar_linux", "tests"]
+}

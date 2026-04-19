@@ -1,0 +1,264 @@
+/* ═══════════════════════════════════════════════════════
+   CodexBar Linux — Carbon Precision Theme
+   Dark-first, compositor-independent, developer-grade
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Window ─────────────────────────────────────────────── */
+window.popup {
+    background-color: rgba(20, 21, 28, 0.98);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.75),
+        0 4px 16px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color: #e8e8ec;
+}
+
+.window-header {
+    background-color: rgba(255, 255, 255, 0.035);
+    border-radius: 14px 14px 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 8px 12px;
+}
+
+.window-drag-handle {
+    min-height: 18px;
+}
+
+.window-title {
+    font-size: 11px;
+    font-family: 'Ubuntu Mono', 'Courier New', monospace;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.42);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.window-minimize {
+    background: none;
+    border: none;
+    border-radius: 6px;
+    min-width: 24px;
+    min-height: 18px;
+    padding: 0 6px 2px 6px;
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.window-minimize:hover {
+    background-color: rgba(245, 166, 35, 0.12);
+    color: #F5A623;
+}
+
+/* ── Provider Tab Strip ─────────────────────────────────── */
+.tab-strip {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 10px 12px 8px 12px;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    border-radius: 7px;
+    padding: 5px 10px 4px 10px;
+    font-size: 10px;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.38);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    min-width: 44px;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.tab-button:hover {
+    background-color: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.tab-button.active {
+    background-color: rgba(245, 166, 35, 0.18);
+    color: #F5A623;
+    font-weight: 600;
+    border: 1px solid rgba(245, 166, 35, 0.28);
+}
+
+.tab-icon {
+    font-size: 12px;
+    margin-bottom: 1px;
+    color: inherit;
+}
+
+/* ── Provider Detail View ───────────────────────────────── */
+.provider-scroll {
+    background: none;
+}
+
+.provider-content {
+    padding: 16px 18px 14px 18px;
+}
+
+/* ── Provider Header ────────────────────────────────────── */
+.provider-name {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: #f0f0f4;
+    letter-spacing: -0.4px;
+}
+
+.provider-plan {
+    font-size: 11px;
+    font-family: 'Ubuntu Mono', 'Courier New', monospace;
+    color: rgba(245, 166, 35, 0.75);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.provider-updated {
+    font-size: 11px;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.28);
+    margin-top: 2px;
+    margin-bottom: 12px;
+    letter-spacing: 0.2px;
+}
+
+.provider-updated.stale {
+    color: #F5A623;
+}
+
+.provider-error {
+    font-size: 12px;
+    font-family: 'Ubuntu Mono', monospace;
+    color: #ff6b6b;
+    margin-top: 4px;
+    background-color: rgba(255, 107, 107, 0.08);
+    border-left: 2px solid rgba(255, 107, 107, 0.5);
+    padding: 6px 10px;
+    border-radius: 0 4px 4px 0;
+}
+
+/* ── Metric Section (Session / Weekly / Sonnet) ─────────── */
+.section-label {
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-top: 12px;
+    margin-bottom: 6px;
+}
+
+.metric-row {
+    margin-bottom: 4px;
+}
+
+.metric-stats {
+    font-size: 11px;
+    font-family: 'Ubuntu Mono', 'Courier New', monospace;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 4px;
+    letter-spacing: 0.2px;
+}
+
+.metric-used {
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 500;
+}
+
+.metric-reset {
+    color: rgba(255, 255, 255, 0.32);
+}
+
+.metric-pace {
+    font-size: 10px;
+    font-family: 'Ubuntu Mono', monospace;
+    color: rgba(255, 255, 255, 0.25);
+    margin-top: 2px;
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+}
+
+/* ── Credits ─────────────────────────────────────────────── */
+.credits-label {
+    font-size: 12px;
+    font-family: 'Ubuntu Mono', 'Courier New', monospace;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 6px;
+    letter-spacing: 0.3px;
+}
+
+/* ── Divider ─────────────────────────────────────────────── */
+.section-divider {
+    background-color: rgba(255, 255, 255, 0.07);
+    min-height: 1px;
+    margin: 10px 0;
+}
+
+/* ── Collapsible rows (Extra Usage / Cost) ───────────────── */
+.collapsible-header {
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    padding: 4px 0;
+}
+
+.collapsible-detail {
+    font-size: 11px;
+    font-family: 'Ubuntu Mono', monospace;
+    color: rgba(255, 255, 255, 0.38);
+    margin-bottom: 4px;
+}
+
+.expand-chevron {
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 10px;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.footer-bar {
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 0 0 14px 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 7px 16px;
+}
+
+.footer-timestamp {
+    font-size: 10px;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.3px;
+}
+
+.footer-timestamp.stale {
+    color: #F5A623;
+}
+
+.refresh-button {
+    font-size: 10px;
+    font-family: 'Ubuntu', 'Cantarell', sans-serif;
+    color: rgba(255, 255, 255, 0.38);
+    background: none;
+    border: none;
+    padding: 3px 8px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    border-radius: 4px;
+    transition: background-color 100ms ease, color 100ms ease;
+}
+
+.refresh-button:hover {
+    background-color: rgba(245, 166, 35, 0.12);
+    color: #F5A623;
+}
