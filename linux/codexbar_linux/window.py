@@ -21,6 +21,24 @@ def _default_window_origin(monitor_x: int, monitor_y: int, monitor_width: int, w
     return (monitor_x + monitor_width - window_width - 8, monitor_y + PANEL_HEIGHT_ESTIMATE + 4)
 
 
+def _clamp_window_origin(
+    x: int,
+    y: int,
+    monitor_x: int,
+    monitor_y: int,
+    monitor_width: int,
+    monitor_height: int,
+    window_width: int,
+    window_height: int,
+) -> tuple[int, int]:
+    max_x = max(monitor_x, monitor_x + monitor_width - max(window_width, 1))
+    max_y = max(monitor_y, monitor_y + monitor_height - max(window_height, 1))
+    return (
+        min(max(x, monitor_x), max_x),
+        min(max(y, monitor_y), max_y),
+    )
+
+
 @dataclass
 class WindowDragState:
     manual_origin: Optional[tuple[int, int]] = None
@@ -246,13 +264,27 @@ class PopupWindow(Gtk.Window):
         display = Gdk.Display.get_default()
         if display is None:
             return None
-        monitors = display.get_monitors()
-        monitor = monitors.get_item(0)
+        surface = self.get_surface()
+        monitor = display.get_monitor_at_surface(surface) if surface is not None else None
+        if monitor is None:
+            monitors = display.get_monitors()
+            monitor = monitors.get_item(0)
         if monitor is None:
             return None
         geo = monitor.get_geometry()
         w = self.get_width() or WINDOW_WIDTH
-        return _default_window_origin(geo.x, geo.y, geo.width, w)
+        h = self.get_height() or 1
+        x, y = _default_window_origin(geo.x, geo.y, geo.width, w)
+        return _clamp_window_origin(
+            x=x,
+            y=y,
+            monitor_x=geo.x,
+            monitor_y=geo.y,
+            monitor_width=geo.width,
+            monitor_height=geo.height,
+            window_width=w,
+            window_height=h,
+        )
 
     def _move_window(self, x: int, y: int) -> None:
         self._window_origin = (x, y)

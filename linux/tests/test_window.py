@@ -1,9 +1,30 @@
-from codexbar_linux.window import FocusBehavior, WindowChromeState, WindowDragState, _default_window_origin
+from codexbar_linux.window import (
+    FocusBehavior,
+    WindowChromeState,
+    WindowDragState,
+    _clamp_window_origin,
+    _default_window_origin,
+)
 
 
 def test_default_window_origin_anchors_to_top_right():
     origin = _default_window_origin(monitor_x=10, monitor_y=20, monitor_width=300, window_width=100)
     assert origin == (202, 70)
+
+
+def test_clamp_window_origin_keeps_popup_inside_monitor():
+    origin = _clamp_window_origin(
+        x=350,
+        y=-20,
+        monitor_x=10,
+        monitor_y=20,
+        monitor_width=300,
+        monitor_height=200,
+        window_width=100,
+        window_height=80,
+    )
+
+    assert origin == (210, 20)
 
 
 def test_drag_state_retains_manual_origin_after_drag():

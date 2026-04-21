@@ -79,6 +79,7 @@ def main() -> None:
 
     # Show the window immediately on first launch
     GLib.idle_add(window.present)
+    GLib.idle_add(window._position_window)
     GLib.idle_add(window.refresh_content)
 
     def _start_poller() -> None:
