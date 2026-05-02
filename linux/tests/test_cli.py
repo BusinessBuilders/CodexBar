@@ -340,6 +340,33 @@ def test_run_usage_json_returns_gemini_fallback_provider():
     assert [provider.provider for provider in payloads] == ["gemini"]
 
 
+def test_run_usage_json_ignores_fallback_provider_exceptions():
+    with patch("codexbar_linux.cli.subprocess.run") as mock_run, \
+            patch("codexbar_linux.cli._patch_binary_for_glibc235"), \
+            patch("codexbar_linux.cli._ensure_glibc_shim", return_value=None), \
+            patch("codexbar_linux.cli._fetch_codex_oauth_provider", return_value=ProviderData(
+                provider="codex",
+                account=None,
+                source="oauth",
+                status_indicator="none",
+                primary=None,
+                secondary=None,
+                tertiary=None,
+                credits_text=None,
+                credits_remaining=None,
+                plan_text="Plus",
+                error=None,
+            )), \
+            patch("codexbar_linux.cli._fetch_claude_oauth_provider", return_value=None), \
+            patch("codexbar_linux.cli._fetch_gemini_provider", side_effect=OSError("Transport endpoint is not connected")), \
+            patch("codexbar_linux.cli._fetch_zai_provider", return_value=None):
+        mock_run.side_effect = __import__("subprocess").TimeoutExpired(cmd="codexbar", timeout=0.01)
+        payloads, error = run_usage_json(Path("/fake/codexbar"), timeout=0.01)
+
+    assert error is None
+    assert [provider.provider for provider in payloads] == ["codex"]
+
+
 def test_find_cli_in_path(tmp_path):
     fake_binary = tmp_path / "codexbar"
     fake_binary.write_text("#!/bin/bash\necho ok")

@@ -85,17 +85,24 @@ metadata_dir = Path(sys.argv[2])
 linux_dir = Path(sys.argv[3])
 sys.path.insert(0, str(linux_dir))
 
-from codexbar_linux.packaging import PackagingPaths, render_apprun, render_desktop_entry, render_launcher
+from codexbar_linux.packaging import (
+    PackagingPaths,
+    render_apprun,
+    render_desktop_entry,
+    render_launcher,
+    render_quota_launcher,
+)
 
 paths = PackagingPaths.from_root(appdir)
 paths.launcher.write_text(render_launcher(paths))
+paths.quota_launcher.write_text(render_quota_launcher(paths))
 (metadata_dir / "AppRun").write_text(render_apprun(paths))
 (metadata_dir / "codexbar-linux.desktop").write_text(
     render_desktop_entry(exec_name="codexbar-linux", icon_name="codexbar-linux")
 )
 PY
 
-chmod +x "$METADATA_DIR/AppRun" "$APPDIR/usr/bin/codexbar-linux"
+chmod +x "$METADATA_DIR/AppRun" "$APPDIR/usr/bin/codexbar-linux" "$APPDIR/usr/bin/codexbar-linux-quota"
 
 if ! command -v linuxdeploy >/dev/null 2>&1; then
   echo "ERROR: linuxdeploy is required to package the AppDir" >&2

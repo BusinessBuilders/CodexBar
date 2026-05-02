@@ -627,10 +627,18 @@ def _gemini_binary_path() -> Optional[Path]:
         if expanded == superset_bin or expanded.startswith(str(Path.home() / ".superset-")):
             continue
         candidate = Path(entry).expanduser() / "gemini"
-        if candidate.is_file() and os.access(candidate, os.X_OK):
-            return candidate.resolve()
+        try:
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                return candidate.resolve()
+        except OSError:
+            continue
     found = shutil.which("gemini")
-    return Path(found).resolve() if found else None
+    if not found:
+        return None
+    try:
+        return Path(found).resolve()
+    except OSError:
+        return None
 
 
 def _gemini_bundle_candidates() -> list[Path]:
@@ -642,12 +650,18 @@ def _gemini_bundle_candidates() -> list[Path]:
         bundle_dir = gemini_binary.parent
     else:
         bundle_dir = gemini_binary.parent.parent / "lib" / "node_modules" / "@google" / "gemini-cli" / "bundle"
-    if not bundle_dir.exists():
+    try:
+        if not bundle_dir.exists():
+            return []
+    except OSError:
         return []
 
-    candidates = list(sorted(bundle_dir.glob("chunk-*.js")))
-    candidates.extend(sorted(bundle_dir.glob("oauth2-provider-*.js")))
-    candidates.extend(sorted(bundle_dir.glob("*.js")))
+    try:
+        candidates = list(sorted(bundle_dir.glob("chunk-*.js")))
+        candidates.extend(sorted(bundle_dir.glob("oauth2-provider-*.js")))
+        candidates.extend(sorted(bundle_dir.glob("*.js")))
+    except OSError:
+        return []
     return candidates
 
 
@@ -938,7 +952,10 @@ def _fallback_usage_providers() -> tuple[list[ProviderData], Optional[str]]:
         _fetch_gemini_provider,
         _fetch_zai_provider,
     ):
-        provider = fetcher()
+        try:
+            provider = fetcher()
+        except Exception:
+            continue
         if provider is not None:
             providers.append(provider)
     return providers, None

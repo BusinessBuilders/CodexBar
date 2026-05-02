@@ -1,6 +1,12 @@
 from pathlib import Path
 
-from codexbar_linux.packaging import PackagingPaths, render_apprun, render_desktop_entry, render_launcher
+from codexbar_linux.packaging import (
+    PackagingPaths,
+    render_apprun,
+    render_desktop_entry,
+    render_launcher,
+    render_quota_launcher,
+)
 
 
 def test_packaging_paths_cover_expected_appdir_layout():
@@ -8,6 +14,7 @@ def test_packaging_paths_cover_expected_appdir_layout():
 
     assert paths.apprun == Path("/tmp/CodexBar.AppDir/AppRun")
     assert paths.launcher == Path("/tmp/CodexBar.AppDir/usr/bin/codexbar-linux")
+    assert paths.quota_launcher == Path("/tmp/CodexBar.AppDir/usr/bin/codexbar-linux-quota")
     assert paths.cli == Path("/tmp/CodexBar.AppDir/usr/bin/codexbar")
     assert paths.lib_dir == Path("/tmp/CodexBar.AppDir/usr/lib/codexbar-linux")
     assert paths.site_packages == Path("/tmp/CodexBar.AppDir/usr/lib/codexbar-linux/site-packages")
@@ -28,7 +35,20 @@ def test_render_apprun_execs_bundled_launcher():
 
     apprun = render_apprun(paths)
 
+    assert 'if [ "${1:-}" = "quota-server" ]; then' in apprun
+    assert 'shift' in apprun
+    assert 'exec "$HERE/usr/bin/codexbar-linux-quota" "$@"' in apprun
     assert 'exec "$HERE/usr/bin/codexbar-linux" "$@"' in apprun
+
+
+def test_render_quota_launcher_execs_quota_server_module():
+    paths = PackagingPaths.from_root(Path("/tmp/CodexBar.AppDir"))
+
+    launcher = render_quota_launcher(paths)
+
+    assert 'export PATH="$APPDIR/usr/bin:${PATH:-}"' in launcher
+    assert 'export PYTHONPATH="$APPDIR/usr/lib/codexbar-linux:$APPDIR/usr/lib/codexbar-linux/site-packages' in launcher
+    assert 'exec /usr/bin/python3 -m codexbar_linux.quota_server "$@"' in launcher
 
 
 def test_render_desktop_entry_uses_packaged_exec_and_icon():

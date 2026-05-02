@@ -9,6 +9,7 @@ class PackagingPaths:
     root: Path
     apprun: Path
     launcher: Path
+    quota_launcher: Path
     cli: Path
     lib_dir: Path
     site_packages: Path
@@ -22,6 +23,7 @@ class PackagingPaths:
             root=root,
             apprun=root / "AppRun",
             launcher=root / "usr" / "bin" / "codexbar-linux",
+            quota_launcher=root / "usr" / "bin" / "codexbar-linux-quota",
             cli=root / "usr" / "bin" / "codexbar",
             lib_dir=lib_dir,
             site_packages=lib_dir / "site-packages",
@@ -41,9 +43,24 @@ exec /usr/bin/python3 -m codexbar_linux "$@"
 """
 
 
+def render_quota_launcher(paths: PackagingPaths) -> str:
+    return """#!/usr/bin/env bash
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APPDIR="$(cd "$HERE/../.." && pwd)"
+export PATH="$APPDIR/usr/bin:${PATH:-}"
+export PYTHONPATH="$APPDIR/usr/lib/codexbar-linux:$APPDIR/usr/lib/codexbar-linux/site-packages${PYTHONPATH:+:$PYTHONPATH}"
+exec /usr/bin/python3 -m codexbar_linux.quota_server "$@"
+"""
+
+
 def render_apprun(paths: PackagingPaths) -> str:
     return """#!/bin/sh
 HERE="$(dirname "$(readlink -f "$0")")"
+if [ "${1:-}" = "quota-server" ]; then
+  shift
+  exec "$HERE/usr/bin/codexbar-linux-quota" "$@"
+fi
 exec "$HERE/usr/bin/codexbar-linux" "$@"
 """
 

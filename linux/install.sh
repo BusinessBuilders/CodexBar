@@ -90,6 +90,13 @@ exec /usr/bin/python3 -m codexbar_linux "\$@"
 LAUNCHER
 chmod +x "$BIN_DIR/codexbar-linux"
 
+cat > "$BIN_DIR/codexbar-linux-quota" <<LAUNCHER
+#!/usr/bin/env bash
+export PYTHONPATH="$APP_DIR"
+exec /usr/bin/python3 -m codexbar_linux.quota_server "\$@"
+LAUNCHER
+chmod +x "$BIN_DIR/codexbar-linux-quota"
+
 # ── Desktop / autostart entries ───────────────────────────
 mkdir -p "$AUTOSTART_DIR"
 cat > "$AUTOSTART_DIR/codexbar-linux.desktop" <<DESKTOP
@@ -113,6 +120,7 @@ echo ""
 echo "✓ CodexBar Linux installed successfully!"
 echo ""
 echo "  Launch now:  codexbar-linux"
+echo "  Quota API:   codexbar-linux-quota --host 127.0.0.1 --port 8787"
 echo "  Auto-starts: on next login"
 echo ""
 echo "  Tip: run 'codexbar config' to enable providers before launching."

@@ -24,6 +24,21 @@ brew install steipete/tap/codexbar
 Or download `CodexBarCLI-v<tag>-linux-<arch>.tar.gz` from GitHub Releases.
 Linux support via Omarchy: community Waybar module and TUI, driven by the `codexbar` executable.
 
+### Linux app quota API
+The Linux GTK app also exposes a local quota API for integrations such as Conductor.
+
+```bash
+codexbar-linux-quota --host 127.0.0.1 --port 8787
+curl http://127.0.0.1:8787/quota
+```
+
+The server returns the fixed provider IDs `qwen_local`, `glm`, `glm_air`, `codex`, `gemini_pro`, and `gemini_flash`.
+Config keys in `~/.config/codexbar-linux/config.json`:
+- `quota_server_enabled`
+- `quota_server_host`
+- `quota_server_port`
+- `quota_server_ttl_seconds`
+
 ### First run
 - Open Settings → Providers and enable what you use.
 - Install/sign in to the provider sources you rely on (e.g. `codex`, `claude`, `gemini`, browser cookies, or OAuth; Antigravity requires the Antigravity app running).

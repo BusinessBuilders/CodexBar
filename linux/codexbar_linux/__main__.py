@@ -8,6 +8,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import GLib
 from codexbar_linux.cli import find_cli, download_cli
 from codexbar_linux.poller import BackgroundPoller
+from codexbar_linux.quota_server import QuotaServer
 from codexbar_linux.store import DataStore
 from codexbar_linux.tray import TrayIcon
 from codexbar_linux.window import PopupWindow
@@ -41,6 +42,7 @@ def main() -> None:
     store = DataStore()
     loop = GLib.MainLoop()
     window = PopupWindow(store, on_refresh=None)
+    quota_server: Optional[QuotaServer] = None
 
     _poller: Optional[BackgroundPoller] = None
 
@@ -64,6 +66,8 @@ def main() -> None:
     def on_quit() -> None:
         if _poller is not None:
             _poller.stop()
+        if quota_server is not None:
+            quota_server.stop()
         GLib.idle_add(loop.quit)
 
     tray = TrayIcon(
@@ -76,6 +80,15 @@ def main() -> None:
     # Start tray immediately — don't wait for CLI
     tray_thread = threading.Thread(target=tray.run, daemon=True)
     tray_thread.start()
+
+    if config.get("quota_server_enabled", True):
+        quota_server = QuotaServer(
+            store=store,
+            host=str(config.get("quota_server_host", "127.0.0.1")),
+            port=int(config.get("quota_server_port", 8787)),
+            ttl_seconds=int(config.get("quota_server_ttl_seconds", 60)),
+        )
+        quota_server.start()
 
     # Show the window immediately on first launch
     GLib.idle_add(window.present)
